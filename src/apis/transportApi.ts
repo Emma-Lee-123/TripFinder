@@ -1,52 +1,93 @@
-import { SearchParams, Trip } from "../models/transportModels";
+import { SearchParams, Stop, TripStopGroup } from "../models/transportModels";
 import { locationData } from "../data/locationData";
 
-export const searchTransport = async (params: SearchParams): Promise<Trip[]> => {
+export const searchTransport = async (params: SearchParams): Promise<TripStopGroup[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));
   // Mock data based on search parameters
-  const mockTrips: Trip[] = [
+  const mockTrips: TripStopGroup[] = [
     {
-      id: '1',
-      type: 'Train',
-      routeNumber: 'ICE 123',
-      departureTime: '08:30',
-      arrivalTime: '12:45',
-      duration: '4h 15m',
-    //   from: params.from,
-    //   to: params.to,
-      transfers: [
-        { station: 'Frankfurt Central', time: '5 min', type: 'Train' }
-      ]
+      id: 'trip1',
+      departureTime: '07:05',
+      arrivalTime: '09:35',
+      firstTripStops: [
+        {
+          tripHeadsign: 'Richmond Hill Center',
+          routeType: 3,
+          stopSequence: 1,
+          arrivalTime: '07:05',
+          departureTime: '07:05',
+          stopName: 'Stop A',
+        },
+        {
+          tripHeadsign: 'Richmond Hill Center',
+          routeType: 3,
+          stopSequence: 2,
+          arrivalTime: '08:00',
+          departureTime: '07:45',
+          stopName: 'Square One',
+        },
+      ],
+      transfer: {
+        stopName: 'Square One',
+        arrivalTime: '08:05',
+        departureTime: '08:15',
+      },
+      secondTripStops: [
+        {
+          tripHeadsign: 'U of Waterloo',
+          routeType: 3,
+          stopSequence: 1,
+          arrivalTime: '',
+          departureTime: '08:15',
+          stopName: 'Square One',
+        },
+        {
+          tripHeadsign: 'U of Waterloo',
+          routeType: 3,
+          stopSequence: 2,
+          arrivalTime: '08:55',
+          departureTime: '09:00',
+          stopName: 'Stop C',
+        },
+        {
+          tripHeadsign: 'U of Waterloo',
+          routeType: 3,
+          stopSequence: 3,
+          arrivalTime: '09:35',
+          departureTime: '',
+          stopName: 'Stop D',
+        },
+      ],
     },
     {
-      id: '2',
-      type: 'Bus',
-      routeNumber: 'FLIX 456',
-      departureTime: '09:15',
-      arrivalTime: '13:30',
-      duration: '4h 15m',
-    //   from: params.from,
-    //   to: params.to,
-      transfers: []
+      id: 'trip2',
+      departureTime: '06:15',
+      arrivalTime: '08:00',
+      firstTripStops: [
+        {
+          tripHeadsign: 'Union Station',
+          routeType: 2,
+          stopSequence: 1,
+          arrivalTime: '06:15',
+          departureTime: '06:15',
+          stopName: 'Stop X',
+        },
+        {
+          tripHeadsign: 'Union Station',
+          routeType: 2,
+          stopSequence: 2,
+          arrivalTime: '08:00',
+          departureTime: '07:30',
+          stopName: 'Stop Y',
+        },
+      ],
+      // No transfer or second trip
     },
-    {
-      id: '3',
-      type: 'Train',
-      routeNumber: 'IC 789',
-      departureTime: '10:00',
-      arrivalTime: '14:20',
-      duration: '4h 20m',
-    //   from: params.from,
-    //   to: params.to,
-      transfers: [
-        { station: 'Hamburg Central', time: '10 min', type: 'Train' },
-        { station: 'Cologne Main', time: '5 min', type: 'Bus' }
-      ]
-    }
   ];
-  if (params.transportType !== 'All') {
-    return mockTrips.filter(trip => trip.type === params.transportType);
+
+  if (!params.from || !params.to) {
+    return []; // Return empty array if from/to are not provided
   }
   return mockTrips;
     // try {
@@ -66,7 +107,7 @@ export const searchTransport = async (params: SearchParams): Promise<Trip[]> => 
     //   }
 };
 
-export const getStopsForAutocomplete = async (searchTerm: string): Promise<string[]> => {
+export const getStopsForAutocomplete = async (searchTerm: string): Promise<Stop[]> => {
     // In production, replace this with actual API call:
     // const response = await fetch(`/api/stops?search=${encodeURIComponent(searchTerm)}`);
     // return await response.json();
@@ -75,7 +116,7 @@ export const getStopsForAutocomplete = async (searchTerm: string): Promise<strin
     return new Promise((resolve) => {
       setTimeout(() => {
         const results = locationData.filter(location =>
-          location.toLowerCase().includes(searchTerm.toLowerCase())
+          location.name.toLowerCase().includes(searchTerm.toLowerCase())
         ).slice(0, 5);
         resolve(results);
       }, 150); // Simulate network delay

@@ -1,61 +1,145 @@
-import React, { useState } from "react";
-import { 
-  Form, 
-  Button, 
-  ToggleButtonGroup, 
-  ToggleButton, 
-  Stack, 
+import React, { useState, useEffect } from 'react';
+import {
+  Form,
+  Button,
+  ToggleButtonGroup,
+  ToggleButton,
+  Stack,
   Alert,
-  Spinner
-} from "react-bootstrap";
-import { 
-  faBus, 
-  faTrain,
-  faBusAlt
-} from '@fortawesome/free-solid-svg-icons';
- import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SearchParams } from "../../models/transportModels";
-import { searchTransport } from "../../apis/transportApi";
-import TripsSection from "./TripsSection";
-import { Trip } from "../../models/transportModels";
+  Spinner,
+} from 'react-bootstrap';
+import { faBus, faTrain, faBusAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { SearchParams, Stop, TripStopGroup } from '../../models/transportModels';
+import { searchTransport, getStopsForAutocomplete } from '../../apis/transportApi';
 import './SearchForm.css';
+import { debounce } from '../../utils/debounce';
+import TripStopGroups from './TripStopGroups';
 
 export const SearchForm: React.FC = () => {
   const defaultDate = new Date().toISOString().split('T')[0];
-  const defaultTime = "08:00";
+  const defaultTime = '08:00';
 
   const [params, setParams] = useState<SearchParams>({
-    from: "",
-    to: "",
+    from: '',
+    to: '',
     date: defaultDate,
     startTime: defaultTime,
-    transportType: "All",
+    transportType: 'All',
   });
 
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripStopGroup[]>([]);
   const [errors, setErrors] = useState<Partial<SearchParams>>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [fromSuggestions, setFromSuggestions] = useState<Stop[]>([]);
+  const [toSuggestions, setToSuggestions] = useState<Stop[]>([]);
+  const [showFromSuggestions, setShowFromSuggestions] = useState(false);
+  const [showToSuggestions, setShowToSuggestions] = useState(false);
+
+  //const debouncedGetStops = debounce<string[], Stop[]>(getStopsForAutocomplete, 300);
+  const debouncedFromSearch = debounce<string[], Stop[]>(async (searchTerm) => {
+    try {
+      return await getStopsForAutocomplete(searchTerm);
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : `Failed to fetch stops by ${searchTerm}`);
+      return [];
+    }
+  }, 300);
+  const debouncedToSearch = debounce<string[], Stop[]>(async (searchTerm) => {
+    try {
+      return await getStopsForAutocomplete(searchTerm);
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : `Failed to fetch stops by ${searchTerm}`);
+      return [];
+    }
+  }, 300);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      debouncedFromSearch.cancel();
+      debouncedToSearch.cancel();
+    };
+  }, []);
+
+  // Handle From input changes
+  const handleFromChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setParams({ ...params, from: value });
+    setShowFromSuggestions(true);
+
+    if (value.length < 2) {
+      setFromSuggestions([]);
+      return;
+    }
+    const stops = await debouncedFromSearch(value);
+    setFromSuggestions(stops);
+    // if (value.length > 1) {
+    //   const suggestions = await debouncedGetStops(value);
+    //   setFromSuggestions(suggestions);
+    //   setShowFromSuggestions(true);
+    // }
+  };
+
+  // Handle To input changes
+  const handleToChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setParams({ ...params, to: value });
+    setShowToSuggestions(true);
+    if (value.length < 2) {
+      setToSuggestions([]);
+      return;
+    }
+
+    const stops = await debouncedToSearch(value);
+    setToSuggestions(stops);
+    // if (value.length > 1) {
+    //   const suggestions = await debouncedGetStops(value);
+    //   setToSuggestions(suggestions);
+    //   setShowToSuggestions(true);
+    // }
+  };
+
+  // Select a suggestion
+  // const selectSuggestion = (field: 'from' | 'to', value: string) => {
+  //   setParams({ ...params, [field]: value });
+  //   if (field === 'from') {
+  //     setShowFromSuggestions(false);
+  //   } else {
+  //     setShowToSuggestions(false);
+  //   }
+  // };
+  // Shared suggestion render helper
+  const renderSuggestions = (suggestions: Stop[], handler: (stop: Stop) => void) => (
+    <ul className="suggestions-list">
+      {suggestions.map((stop) => (
+        <li key={stop.id} onClick={() => handler(stop)} className="suggestion-item">
+          {stop.name}
+        </li>
+      ))}
+    </ul>
+  );
   // Validate all fields
   const validateForm = (): boolean => {
     const newErrors: Partial<SearchParams> = {};
-    
-    if (!params.from.trim()) newErrors.from = "Departure location is required";
-    if (!params.to.trim()) newErrors.to = "Destination is required";
+
+    if (!params.from.trim()) newErrors.from = 'Departure location is required';
+    if (!params.to.trim()) newErrors.to = 'Destination is required';
     if (params.from.trim().toLowerCase() === params.to.trim().toLowerCase()) {
-      newErrors.to = "Destination must be different from departure";
+      newErrors.to = 'Destination must be different from departure';
     }
-    if (!params.date) newErrors.date = "Date is required";
-    
+    if (!params.date) newErrors.date = 'Date is required';
+
     // Time validation (HH:MM format between 05:00-23:00)
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(params.startTime)) {
-      newErrors.startTime = "Invalid time format (HH:MM)";
+      newErrors.startTime = 'Invalid time format (HH:MM)';
     } else {
       const [hours] = params.startTime.split(':').map(Number);
       if (hours < 5 || hours > 23) {
-        newErrors.startTime = "Time must be between 05:00 and 23:00";
+        newErrors.startTime = 'Time must be between 05:00 and 23:00';
       }
     }
 
@@ -66,7 +150,7 @@ export const SearchForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError(null);
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -75,7 +159,7 @@ export const SearchForm: React.FC = () => {
       setTrips(results);
     } catch (err) {
       // setApiError(`Failed to fetch results. Please try again.${err}`);
-      setApiError(err instanceof Error ? err.message : "Failed to fetch results");
+      setApiError(err instanceof Error ? err.message : 'Failed to fetch results');
       setTrips([]);
     } finally {
       setIsLoading(false);
@@ -83,37 +167,69 @@ export const SearchForm: React.FC = () => {
   };
 
   // Check if form has any values (for conditional styling)
-  const isFormDirty = Object.values(params).some(val => val !== "" && val !== "All");
+  const isFormDirty = Object.values(params).some((val) => val !== '' && val !== 'All');
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowFromSuggestions(false);
+      setShowToSuggestions(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
-<div className="transport-search-container">
+    <div className="transport-search-container">
+      <header className="search-form-header">
+        <h1>Trip Finder</h1>
+      </header>
+
       <Form onSubmit={handleSubmit} noValidate className="search-form">
         <Stack gap={1}>
           {/* From/To Inputs */}
-          <Form.Group controlId="fromLocation">
+          <div className="autocomplete-container">
             <Form.Control
               type="text"
               placeholder="From"
               value={params.from}
-              onChange={(e) => setParams({ ...params, from: e.target.value })}
+              onChange={handleFromChange}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              autoComplete="off"
               isInvalid={!!errors.from}
               //size="lg"
               className="search-input"
             />
-          </Form.Group>
+            {showFromSuggestions &&
+              fromSuggestions.length > 0 &&
+              renderSuggestions(fromSuggestions, (stop) => {
+                setParams({ ...params, from: stop.name });
+                setShowFromSuggestions(false);
+              })}
+          </div>
 
-          <Form.Group controlId="toLocation">
+          <div className="autocomplete-container">
             <Form.Control
               type="text"
               placeholder="To"
               value={params.to}
-              onChange={(e) => setParams({ ...params, to: e.target.value })}
+              onChange={handleToChange}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevents the click from closing the suggestions
+              }}
               isInvalid={!!errors.to}
               //size="lg"
               className="search-input"
             />
-
-          </Form.Group>
+            {showToSuggestions &&
+              toSuggestions.length > 0 &&
+              renderSuggestions(toSuggestions, (stop) => {
+                setParams({ ...params, to: stop.name });
+                setShowToSuggestions(false);
+              })}
+          </div>
 
           {/* Date + Time in one line - ALWAYS */}
           <div className="d-flex flex-nowrap gap-2">
@@ -128,7 +244,6 @@ export const SearchForm: React.FC = () => {
                 // style={{ minWidth: '150px' }}
                 className="date-input"
               />
-
             </Form.Group>
 
             <Form.Group controlId="startTime" className="flex-shrink-0" style={{ width: '120px' }}>
@@ -142,7 +257,6 @@ export const SearchForm: React.FC = () => {
                   className="time-input"
                 />
               </div>
-
             </Form.Group>
           </div>
 
@@ -156,35 +270,48 @@ export const SearchForm: React.FC = () => {
               onChange={(val) => setParams({ ...params, transportType: val })}
               className="transport-toggle-group"
             >
-              <ToggleButton id="All" value="All" variant="outline-primary" className="transport-toggle" title="All transport types">
+              <ToggleButton
+                id="All"
+                value="All"
+                variant="outline-primary"
+                className="transport-toggle"
+                title="All transport types"
+              >
                 <FontAwesomeIcon icon={faBusAlt} />
               </ToggleButton>
-              <ToggleButton id="Bus" value="Bus" className="transport-toggle" variant="outline-primary" title="Bus only">
+              <ToggleButton
+                id="Bus"
+                value="Bus"
+                className="transport-toggle"
+                variant="outline-primary"
+                title="Bus only"
+              >
                 <FontAwesomeIcon icon={faBus} />
               </ToggleButton>
-              <ToggleButton id="Train" value="Train" className="transport-toggle" variant="outline-primary" title="Train only">
+              <ToggleButton
+                id="Train"
+                value="Train"
+                className="transport-toggle"
+                variant="outline-primary"
+                title="Train only"
+              >
                 <FontAwesomeIcon icon={faTrain} />
               </ToggleButton>
             </ToggleButtonGroup>
 
-            <Button 
-              variant="primary" 
-              type="submit" 
-              className="search-btn"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Spinner animation="border" size="sm" className="me-2" />
-              ) : null}
+            <Button variant="primary" type="submit" className="search-btn" disabled={isLoading}>
+              {isLoading ? <Spinner animation="border" size="sm" className="me-2" /> : null}
               Search
             </Button>
           </div>
           {/* Validation Errors */}
           <div className="validation-errors">
-            {(errors && Object.keys(errors).length > 0) && (
+            {errors && Object.keys(errors).length > 0 && (
               <Alert variant="danger" className="mt-2">
                 <div className="error-messages">
-                  {errors.from && <div className="error-message">• Departure location is required</div>}
+                  {errors.from && (
+                    <div className="error-message">• Departure location is required</div>
+                  )}
                   {errors.to && <div className="error-message">• Destination is required</div>}
                   {errors.date && <div className="error-message">• Please select a valid date</div>}
                   {errors.startTime && <div className="error-message">• {errors.startTime}</div>}
@@ -202,17 +329,16 @@ export const SearchForm: React.FC = () => {
         </Alert>
       )}
 
-
       {/* Results Section */}
       {isFormDirty && (
         <div className="mt-4">
-          <TripsSection 
-            trips={trips}
-            title={trips.length > 0 
-              ? `Showing ${Math.min(trips.length, 5)} of ${trips.length} trips` 
-              : "No trips found"
+          <TripStopGroups
+            groups={trips}
+            title={
+              trips.length > 0
+                ? `${params.from} to ${params.to}`
+                : 'No trips found'
             }
-            maxDisplay={5}
           />
         </div>
       )}

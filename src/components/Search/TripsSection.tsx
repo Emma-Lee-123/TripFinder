@@ -24,39 +24,35 @@ interface TripsSectionProps {
   maxDisplay?: number;
 }
 
-const TripsSection: React.FC<TripsSectionProps> = ({ 
-  trips, 
-  title = "Recommended Trips", 
-  maxDisplay = 5 
+const TripsSection: React.FC<TripsSectionProps> = ({
+  trips,
+  title = 'Recommended Trips',
+  maxDisplay = 5,
 }) => {
   const displayedTrips = trips.slice(0, maxDisplay);
 
   return (
     <div className="trips-section mt-4">
-      <h5 className="section-title mb-3">
-        <FontAwesomeIcon icon={faClock} className="me-2" />
-        {title}
-      </h5>
-
-      {displayedTrips.length > 0 ? (
+      {displayedTrips.length > 0 && (
+        <div>
+          {' '}
+          <h5 className="section-title mb-3">
+            <FontAwesomeIcon icon={faClock} className="me-2" />
+            {title}
+          </h5>
+        </div>
+      )}
+      {displayedTrips.length > 0 && (
         <Stack gap={2} className="trip-list">
           {displayedTrips.map((trip) => (
             <div key={`${trip.routeNumber}-${trip.departureTime}`} className="trip-card p-3">
               {/* Main Trip Info */}
               <div className="trip-main-info d-flex justify-content-between align-items-center">
                 <div className="transport-info d-flex align-items-center">
-                  {trip.type === "Bus" ? (
-                    <FontAwesomeIcon 
-                      icon={faBus} 
-                      className="text-primary me-2" 
-                      title="Bus"
-                    />
+                  {trip.type === 'Bus' ? (
+                    <FontAwesomeIcon icon={faBus} className="text-primary me-2" title="Bus" />
                   ) : (
-                    <FontAwesomeIcon 
-                      icon={faTrain} 
-                      className="text-danger me-2" 
-                      title="Train"
-                    />
+                    <FontAwesomeIcon icon={faTrain} className="text-danger me-2" title="Train" />
                   )}
                   <span className="route-number fw-medium">{trip.routeNumber}</span>
                 </div>
@@ -67,17 +63,15 @@ const TripsSection: React.FC<TripsSectionProps> = ({
                   <span className="arrival-time fw-bold">{trip.arrivalTime}</span>
                 </div>
 
-                <span className="duration text-muted small">
-                  {trip.duration}
-                </span>
+                <span className="duration text-muted small">{trip.duration}</span>
               </div>
 
               {/* Transfer Info */}
               {trip.transfers && trip.transfers?.length > 0 && (
                 <div className="transfer-info d-flex align-items-center mt-2 small">
-                  <FontAwesomeIcon 
-                    icon={faExchangeAlt} 
-                    className="transfer-icon me-2 text-warning" 
+                  <FontAwesomeIcon
+                    icon={faExchangeAlt}
+                    className="transfer-icon me-2 text-warning"
                     rotation={90}
                     size="xs"
                   />
@@ -97,10 +91,6 @@ const TripsSection: React.FC<TripsSectionProps> = ({
             </div>
           ))}
         </Stack>
-      ) : (
-        <div className="no-trips text-muted text-center py-3">
-          No trips found
-        </div>
       )}
     </div>
   );
