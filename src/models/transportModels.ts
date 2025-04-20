@@ -32,11 +32,11 @@ export type StopDetail = Stop & {
 };
 
 export type TripStop = {
-  //date: string;
+  tripId: string;
   tripHeadsign: string; //display after the route icon
   //directionId: number;
   routeType: number; //display icon based on this value(0:streetcar;1:subway;2:rail;3:bus;4:ferry;5:cable car;6:funicular;7:trolley bus;8:monorail)
-  //stopId: string;
+  stopId: string;
   stopSequence: number;
   arrivalTime: string; //display for the last stop
   departureTime: string; //display for the first stop
@@ -52,9 +52,11 @@ export type Transfer = {
 
 export type TripStopGroup = {
   id: string;
+  tripHeadsign: string; //display after the route icon
+  routeType: number; //display icon based on this value(0:streetcar;1:subway;2:rail;3:bus;4:ferry;5:cable car;6:funicular;7:trolley bus;8:monorail)
   departureTime: string;
   arrivalTime: string;
   firstTripStops: TripStop[];
-  transfer?: Transfer;
+  transfer?: Transfer | null;
   secondTripStops?: TripStop[];
 };

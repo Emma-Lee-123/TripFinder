@@ -82,10 +82,10 @@ const TripStopGroups: React.FC<TripStopGroupsProps> = ({ groups, title }) => {
                 <>
                   <div className="d-flex align-items-center mb-2">
                     <div className="me-2">
-                      {getRouteIcon(group.firstTripStops[0].routeType, 24)}
+                      {getRouteIcon(group.routeType, 24)}
                     </div>
                     <div className="flex-grow-1">
-                      <strong className="d-block">{group.firstTripStops[0].tripHeadsign}</strong>
+                      <strong className="d-block">{group.tripHeadsign}</strong>
                       <small className="text-muted">{group.firstTripStops[0].stopName}</small>
                     </div>
                     <Badge bg="primary" className="fs-6">
