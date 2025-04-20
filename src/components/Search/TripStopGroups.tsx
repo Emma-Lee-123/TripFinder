@@ -81,9 +81,7 @@ const TripStopGroups: React.FC<TripStopGroupsProps> = ({ groups, title }) => {
               {group.firstTripStops.length > 0 && (
                 <>
                   <div className="d-flex align-items-center mb-2">
-                    <div className="me-2">
-                      {getRouteIcon(group.routeType, 24)}
-                    </div>
+                    <div className="me-2">{getRouteIcon(group.routeType, 24)}</div>
                     <div className="flex-grow-1">
                       <strong className="d-block">{group.tripHeadsign}</strong>
                       <small className="text-muted">{group.firstTripStops[0].stopName}</small>
@@ -93,27 +91,28 @@ const TripStopGroups: React.FC<TripStopGroupsProps> = ({ groups, title }) => {
                     </Badge>
                   </div>
                   {/* if no transfer, show last stop arrival */}
-                  {!group.transfer && group.firstTripStops.length > 1 && (
-                    <div className="d-flex align-items-center mb-2">
-                      <div style={{ width: '24px', marginRight: '8px' }}></div>
-                      <div className="flex-grow-1">
-                        <small className="text-muted">
-                          Arrives at{' '}
-                          {group.firstTripStops[group.firstTripStops.length - 1].stopName}
-                        </small>
+                  {(!group.transfer || (group.transfer && !group.transfer.stopName)) &&
+                    group.firstTripStops.length > 1 && (
+                      <div className="d-flex align-items-center mb-2">
+                        <div style={{ width: '24px', marginRight: '8px' }}></div>
+                        <div className="flex-grow-1">
+                          <small className="text-muted">
+                            Arrives at{' '}
+                            {group.firstTripStops[group.firstTripStops.length - 1].stopName}
+                          </small>
+                        </div>
+                        <Badge bg="success" className="fs-6">
+                          {formatTime(
+                            group.firstTripStops[group.firstTripStops.length - 1].arrivalTime,
+                          )}
+                        </Badge>
                       </div>
-                      <Badge bg="success" className="fs-6">
-                        {formatTime(
-                          group.firstTripStops[group.firstTripStops.length - 1].arrivalTime,
-                        )}
-                      </Badge>
-                    </div>
-                  )}
+                    )}
                 </>
               )}
 
               {/* Transfer */}
-              {group.transfer && (
+              {group.transfer && group.transfer.stopName && (
                 <div className="transfer-section my-2 py-2 d-flex align-items-center">
                   <FontAwesomeIcon icon={faPersonWalking} className="me-2" />
                   <div className="transfer-details">

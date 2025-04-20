@@ -1,4 +1,6 @@
 export interface SearchParams {
+  fromId: string; 
+  toId: string;
   from: string;
   to: string;
   date: string;

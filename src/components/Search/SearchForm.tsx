@@ -21,6 +21,8 @@ export const SearchForm: React.FC = () => {
   const defaultTime = '08:00';
 
   const [params, setParams] = useState<SearchParams>({
+    fromId: '',
+    toId: '',
     from: '',
     to: '',
     date: defaultDate,
@@ -205,7 +207,7 @@ export const SearchForm: React.FC = () => {
             {showFromSuggestions &&
               fromSuggestions.length > 0 &&
               renderSuggestions(fromSuggestions, (stop) => {
-                setParams({ ...params, from: stop.name });
+                setParams({ ...params, fromId: stop.id, from: stop.name });
                 setShowFromSuggestions(false);
               })}
           </div>
@@ -226,7 +228,7 @@ export const SearchForm: React.FC = () => {
             {showToSuggestions &&
               toSuggestions.length > 0 &&
               renderSuggestions(toSuggestions, (stop) => {
-                setParams({ ...params, to: stop.name });
+                setParams({ ...params, toId: stop.id, to: stop.name });
                 setShowToSuggestions(false);
               })}
           </div>
@@ -334,11 +336,7 @@ export const SearchForm: React.FC = () => {
         <div className="mt-4">
           <TripStopGroups
             groups={trips}
-            title={
-              trips.length > 0
-                ? `${params.from} to ${params.to}`
-                : 'No trips found'
-            }
+            title={trips.length > 0 ? `${params.from} to ${params.to}` : 'No trips found'}
           />
         </div>
       )}
