@@ -10,7 +10,7 @@ export const mockStops: Stop[] = [
   { id: 'LE', name: 'Leipzig' },
 ];
 
-export   const mockTrips: TripStopGroup[] = [
+export const mockTrips: TripStopGroup[] = [
     {
       id: 'trip1',
       departureTime: '07:05',

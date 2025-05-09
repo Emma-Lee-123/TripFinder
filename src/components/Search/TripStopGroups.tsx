@@ -67,7 +67,7 @@ const TripStopGroups: React.FC<TripStopGroupsProps> = ({ groups, title }) => {
           </h5>
         </div>
       )}
-      {groups.map((group) => {
+      {groups.length > 0 && groups.map((group) => {
         const isOpen = expandedGroupId === group.id;
         return (
           <Card
