@@ -15,10 +15,10 @@ export const searchTransport = async (params: SearchParams): Promise<TripStopGro
   const startTime = formatTime(params.startTime);
 
   const func_url = appendParameterToUrl(func_url_base, 'from', params.fromId);
-  const func_url2 = appendParameterToUrl(func_url, 'to', params.toId); 
-  const func_url3 = appendParameterToUrl(func_url2, 'date', date); 
-  const func_url4 = appendParameterToUrl(func_url3, 'startTime', startTime); 
-  const url = appendParameterToUrl(func_url4, 'transportType', params.transportType); 
+  const func_url2 = appendParameterToUrl(func_url, 'to', params.toId);
+  const func_url3 = appendParameterToUrl(func_url2, 'date', date);
+  const func_url4 = appendParameterToUrl(func_url3, 'startTime', startTime);
+  const url = appendParameterToUrl(func_url4, 'transportType', params.transportType);
 
   const response = await fetch(url, {
     method: 'GET',
