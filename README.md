@@ -26,7 +26,7 @@ This repository contains the frontend for the Trip Finder application, built wit
 Environment variables: uses "VITE_" prefixed environment variables to config Azure functions endpoints
 ### License
 This project is open-source and available under the GNU General Public License (GPLv3)
-### TO Do and Improvements
+### Future Improvements
 - Mobile UI improvements(React Native)
 - Allow transfer
 - Integrate with multiple transit agents
